@@ -6,6 +6,39 @@ import matplotlib.pyplot as plt
 import re
 import datetime
 
+
+# Hyper-parameters
+tf.flags.DEFINE_boolean('test', False,
+                        'Should the network perform testing? (default: False)')
+tf.flags.DEFINE_boolean('train', False,
+                        'Should the network perform training? (default: False)')
+tf.flags.DEFINE_boolean('accuracy', False,
+                        'Should the network perform accuracy testing? (default: False)')
+
+
+#######################
+# Convert to ids matrix
+# Removes punctuation, parentheses, question marks, etc., and leaves only alphanumeric characters
+#######################
+strip_special_chars = re.compile("[^A-Za-z0-9 ]+")
+
+def cleanSentences(string):
+    print ('Cleaning sentence...')
+    string = string.lower().replace("<br />", " ")
+    return re.sub(strip_special_chars, "", string.lower())
+
+
+##########################
+# GET VECTORS FOR A STRING
+##########################
+def printme(teststring):
+    print('GET VECTORS FOR A STRING...')
+    # print str
+    # print(tf.string_split(str))
+    print(tf.string_split(cleanSentences(teststring)))
+    return;
+
+
 ###############
 # LOAD WORDLIST
 ###############
@@ -31,7 +64,8 @@ print ('Loaded the word vectors!')
 #######################
 # TEST: SET TEXT STRING
 #######################
-print ('TEST: SET TEXT STRING...')
+# if FLAGS.test:
+print ('TEST: CONVERT STRING TO TEXT...')
 maxSeqLength = 10  # Maximum length of sentence
 numDimensions = 300  # Dimensions for each word vector
 firstSentence = np.zeros((maxSeqLength), dtype='int32')  # Return a new array of given shape and type, filled with zeros
@@ -50,42 +84,34 @@ print(firstSentence)  # Shows the row index for each word
 with tf.Session() as sess:
     print(tf.nn.embedding_lookup(wordVectors,firstSentence).eval().shape)
 
-
-##########################
-# GET VECTORS FOR A STRING
-##########################
-def printme( str ):
-   # print str
-   print ('GET VECTORS FOR A STRING...')
-   print(tf.string_split(str))
-   return;
+print(printme("A crappy string"))
 
 
 ####################
 # LOAD TRAINING SETS
 ####################
-# positiveFiles = ['positiveReviews/' + f for f in listdir('positiveReviews/') if isfile(join('positiveReviews/', f))]
-# negativeFiles = ['negativeReviews/' + f for f in listdir('negativeReviews/') if isfile(join('negativeReviews/', f))]
-# numWords = []
-# for pf in positiveFiles:
-# #     with open(pf, "r", encoding='utf-8') as f:
-#     with open(pf, "r") as f:
-#         line=f.readline()
-#         counter = len(line.split())
-#         numWords.append(counter)
-# print('Positive files finished')
-#
-# for nf in negativeFiles:
-#     with open(nf, "r") as f:
-#         line=f.readline()
-#         counter = len(line.split())
-#         numWords.append(counter)
-# print('Negative files finished')
+positiveFiles = ['positiveReviews/' + f for f in listdir('positiveReviews/') if isfile(join('positiveReviews/', f))]
+negativeFiles = ['negativeReviews/' + f for f in listdir('negativeReviews/') if isfile(join('negativeReviews/', f))]
+numWords = []
+for pf in positiveFiles:
+    # with open(pf, "r", encoding='utf-8') as f:
+    with open(pf, "r") as f:
+        line=f.readline()
+        counter = len(line.split())
+        numWords.append(counter)
+print('Positive files finished')
 
-# numFiles = len(numWords)
-# print('The total number of files is', numFiles)
-# print('The total number of words in the files is', sum(numWords))
-# print('The average number of words in the files is', sum(numWords)/len(numWords))
+for nf in negativeFiles:
+    with open(nf, "r") as f:
+        line=f.readline()
+        counter = len(line.split())
+        numWords.append(counter)
+print('Negative files finished')
+
+numFiles = len(numWords)
+print('The total number of files is', numFiles)
+print('The total number of words in the files is', sum(numWords))
+print('The average number of words in the files is', sum(numWords)/len(numWords))
 
 
 #######################################################
@@ -108,24 +134,15 @@ maxSeqLength = 250
 ########################################################
 # Use a single file and transform it into our ids matrix
 ########################################################
-# print ('Use a single file and transform it into our ids matrix...')
-# fname = positiveFiles[7] #Can use any valid index (not just 3)
-# with open(fname) as f:
-#     for lines in f:
-#         print(lines)
-#         exit
+print ('Use a single file and transform it into our ids matrix...')
+fname = positiveFiles[7]  # Can use any valid index (not just 3)
+with open(fname) as f:
+    for lines in f:
+        print(lines)
+        exit
 
 
-#######################
-# Convert to ids matrix
-# Removes punctuation, parentheses, question marks, etc., and leaves only alphanumeric characters
-#######################
-# strip_special_chars = re.compile("[^A-Za-z0-9 ]+")
 
-def cleanSentences(string):
-    print ('Convert to ids matrix...')
-    string = string.lower().replace("<br />", " ")
-    return re.sub(strip_special_chars, "", string.lower())
 
 firstFile = np.zeros((maxSeqLength), dtype='int32')
 with open(fname) as f:
@@ -177,9 +194,7 @@ numClasses = 2
 iterations = 100000
 
 # Import placeholder
-# import tensorflow as tf
 tf.reset_default_graph()
-
 labels = tf.placeholder(tf.float32, [batchSize, numClasses])
 input_data = tf.placeholder(tf.int32, [batchSize, maxSeqLength])
 
@@ -200,55 +215,62 @@ value = tf.transpose(value, [1, 0, 2])
 last = tf.gather(value, int(value.get_shape()[0]) - 1)
 prediction = (tf.matmul(last, weight) + bias)
 
-# define correct prediction and accuracy metrics to track how the network is doing
-correctPred = tf.equal(tf.argmax(prediction,1), tf.argmax(labels,1))
+# Define correct prediction and accuracy metrics to track how the network is doing
+correctPred = tf.equal(tf.argmax(prediction,1), tf.argmax(labels, 1))
 accuracy = tf.reduce_mean(tf.cast(correctPred, tf.float32))
 
-# We’ll define a standard cross entropy loss with a softmax layer put on top of the final prediction values.
-# For the optimizer, we’ll use Adam and the default learning rate of .001.
+# We'll define a standard cross entropy loss with a softmax layer put on top of the final prediction values.
+# For the optimizer, we'll use Adam and the default learning rate of .001.
 loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=prediction, labels=labels))
 optimizer = tf.train.AdamOptimizer().minimize(loss)
 
-# If you’d like to use Tensorboard to visualize the loss and accuracy values, you can also run and the modify the following code.
+
+#####################################################################
+# If you'd like to use Tensorboard to visualize the loss and accuracy
+# values, you can also run and the modify the following code.
+#####################################################################
 tf.summary.scalar('Loss', loss)
 tf.summary.scalar('Accuracy', accuracy)
 merged = tf.summary.merge_all()
 logdir = "tensorboard/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S") + "/"
 writer = tf.summary.FileWriter(logdir, sess.graph)
 
-# Load previous training data
-# sess = tf.InteractiveSession()
-# saver = tf.train.Saver()
-# saver.restore(sess, tf.train.latest_checkpoint('models'))
 
-# Training
+########################
+# Load pre-trained model
+########################
 sess = tf.InteractiveSession()
 saver = tf.train.Saver()
-sess.run(tf.global_variables_initializer())
+saver.restore(sess, tf.train.latest_checkpoint('models'))
 
-for i in range(iterations):
-    # Next Batch of reviews
-    nextBatch, nextBatchLabels = getTrainBatch();
-    sess.run(optimizer, {input_data: nextBatch, labels: nextBatchLabels})
 
-    # Write summary to Tensorboard
-    if (i % 50 == 0):
-        summary = sess.run(merged, {input_data: nextBatch, labels: nextBatchLabels})
-        writer.add_summary(summary, i)
+# Training
+if FLAGS.train:
+    sess = tf.InteractiveSession()
+    saver = tf.train.Saver()
+    sess.run(tf.global_variables_initializer())
 
-    # Save the network every 10,000 training iterations
-    if (i % 10000 == 0 and i != 0):
-        save_path = saver.save(sess, "models/pretrained_lstm.ckpt", global_step=i)
-        print("saved to %s" % save_path)
-writer.close()
+    for i in range(iterations):
+        # Next Batch of reviews
+        nextBatch, nextBatchLabels = getTrainBatch();
+        sess.run(optimizer, {input_data: nextBatch, labels: nextBatchLabels})
 
-# Load pre-trained model
-# sess = tf.InteractiveSession()
-# saver = tf.train.Saver()
-# saver.restore(sess, tf.train.latest_checkpoint('models'))
+        # Write summary to Tensorboard
+        if (i % 50 == 0):
+            summary = sess.run(merged, {input_data: nextBatch, labels: nextBatchLabels})
+            writer.add_summary(summary, i)
+
+        # Save the network every 10,000 training iterations
+        if (i % 10000 == 0 and i != 0):
+            save_path = saver.save(sess, "models/pretrained_lstm.ckpt", global_step=i)
+            print("saved to %s" % save_path)
+    writer.close()
+
 
 # Load movie reviews from test set and get accuracy rating. These are reviews that the model has not been trained on.
-iterations = 10
-for i in range(iterations):
-    nextBatch, nextBatchLabels = getTestBatch();
-    print("Accuracy for this batch:", (sess.run(accuracy, {input_data: nextBatch, labels: nextBatchLabels})) * 100)
+if FLAGS.accuracy:
+    iterations = 10
+
+    for i in range(iterations):
+        nextBatch, nextBatchLabels = getTestBatch();
+        print("Accuracy for this batch:", (sess.run(accuracy, {input_data: nextBatch, labels: nextBatchLabels})) * 100)
