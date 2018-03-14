@@ -68,7 +68,7 @@ print('Loaded word list!')
 wordsList = wordsList.tolist() #Originally loaded as numpy array
 wordsList = [word.decode('UTF-8') for word in wordsList] #Encode words as UTF-8
 wordVectors = np.load('wordVectors.npy')
-print ('^- Loaded word vectors! \n')
+print ('^- Loaded word vectors!')
 
 # print(len(wordsList))
 # print(wordVectors.shape)
@@ -76,7 +76,8 @@ print ('^- Loaded word vectors! \n')
 # print(wordsList)
 # print(wordVectors.shape)
 
-# Search our word list for a word like "baseball", and then access its corresponding vector through the embedding matrix.
+# Search our word list for a word like "baseball", then access
+# its corresponding vector through the embedding matrix.
 # baseballIndex = wordsList.index('baseball')
 # wordVectors[baseballIndex]
 
@@ -104,17 +105,17 @@ if 'testSet' in locals():
     print(firstSentence)  # Shows the row index for each word
 
     with tf.Session() as sess:  # Last working
-    # with tf.session() as sess:
         print ('^- TEST: CONVERTED STRING:')
+        # Looks up ids in a list of embedding tensors
         print(tf.nn.embedding_lookup(wordVectors, firstSentence).eval().shape)
 
     # print(printme("A crappy string"))
 
 
-####################
-# LOAD TRAINING SETS
-####################
-print('\n\nLOAD TRAINING SETS...')
+##############
+# LOAD REVIEWS
+##############
+print('\n\nLOAD REVIEW (POSITIVE & NEGATIVE) FILES...')
 positiveFiles = ['positiveReviews/' + f for f in listdir('positiveReviews/') if isfile(join('positiveReviews/', f))]
 negativeFiles = ['negativeReviews/' + f for f in listdir('negativeReviews/') if isfile(join('negativeReviews/', f))]
 numWords = []
@@ -232,7 +233,7 @@ input_data = tf.placeholder(tf.int32, [batchSize, maxSeqLength])
 # Get wordvectors
 print('^- Fetching wordvectors...')
 data = tf.Variable(tf.zeros([batchSize, maxSeqLength, numDimensions]), dtype=tf.float32)
-data = tf.nn.embedding_lookup(wordVectors,input_data)
+data = tf.nn.embedding_lookup(wordVectors, input_data)
 
 # Feed both the LSTM cell and the 3D tensor full of input data
 print('^- Feeding LSTM cell & 3D tensor w/ input data...')
@@ -263,12 +264,13 @@ optimizer = tf.train.AdamOptimizer().minimize(loss)
 # If you'd like to use Tensorboard to visualize the loss and accuracy
 # values, you can also run and the modify the following code.
 #####################################################################
-print('\n\nEnabling Tensorboard support...')
-tf.summary.scalar('Loss', loss)
-tf.summary.scalar('Accuracy', accuracy)
-merged = tf.summary.merge_all()
-logdir = "tensorboard/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S") + "/"
-writer = tf.summary.FileWriter(logdir, sess.graph)
+with tf.Session() as sess:  # New
+    print('\n\nEnabling Tensorboard support...')
+    tf.summary.scalar('Loss', loss)
+    tf.summary.scalar('Accuracy', accuracy)
+    merged = tf.summary.merge_all()
+    logdir = "tensorboard/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S") + "/"
+    writer = tf.summary.FileWriter(logdir, sess.graph)
 
 
 ########################
@@ -281,7 +283,6 @@ saver.restore(sess, tf.train.latest_checkpoint('models'))
 
 
 # Training
-# if FLAGS.train:
 if 'trainSet' in locals():
     print('\n\ntrainSet...')
     sess = tf.InteractiveSession()
