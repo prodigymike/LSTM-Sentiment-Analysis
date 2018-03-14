@@ -6,9 +6,9 @@ import matplotlib.pyplot as plt
 import re
 import datetime
 
-##########
-# WORDLIST
-##########
+###############
+# LOAD WORDLIST
+###############
 wordsList = np.load('wordsList.npy')
 print('Loaded the word list!')
 
@@ -28,9 +28,10 @@ print ('Loaded the word vectors!')
 # wordVectors[baseballIndex]
 
 
-#################
-# SET TEXT STRING
-#################
+#######################
+# TEST: SET TEXT STRING
+#######################
+print ('TEST: SET TEXT STRING...')
 maxSeqLength = 10  # Maximum length of sentence
 numDimensions = 300  # Dimensions for each word vector
 firstSentence = np.zeros((maxSeqLength), dtype='int32')  # Return a new array of given shape and type, filled with zeros
@@ -44,21 +45,25 @@ firstSentence[6] = wordsList.index("and")
 firstSentence[7] = wordsList.index("inspiring")
 #firstSentence[8] and firstSentence[9] are going to be 0
 print(firstSentence.shape)
-print(firstSentence) #Shows the row index for each word
+print(firstSentence)  # Shows the row index for each word
 
 with tf.Session() as sess:
     print(tf.nn.embedding_lookup(wordVectors,firstSentence).eval().shape)
 
 
+##########################
 # GET VECTORS FOR A STRING
+##########################
 def printme( str ):
    # print str
+   print ('GET VECTORS FOR A STRING...')
    print(tf.string_split(str))
    return;
-# GET VECTORS FOR A STRING
 
 
+####################
 # LOAD TRAINING SETS
+####################
 # positiveFiles = ['positiveReviews/' + f for f in listdir('positiveReviews/') if isfile(join('positiveReviews/', f))]
 # negativeFiles = ['negativeReviews/' + f for f in listdir('negativeReviews/') if isfile(join('negativeReviews/', f))]
 # numWords = []
@@ -82,7 +87,11 @@ def printme( str ):
 # print('The total number of words in the files is', sum(numWords))
 # print('The average number of words in the files is', sum(numWords)/len(numWords))
 
-# We can also use the Matplot library to visualize this data in a histogram format.
+
+#######################################################
+# Visualize data as histogram using the Matplot library
+#######################################################
+# print ('Visualize data as histogram using the Matplot library...')
 # %matplotlib inline
 # plt.hist(numWords, 50)
 # plt.xlabel('Sequence Length')
@@ -96,18 +105,25 @@ def printme( str ):
 maxSeqLength = 250
 
 
+########################################################
 # Use a single file and transform it into our ids matrix
+########################################################
+# print ('Use a single file and transform it into our ids matrix...')
 # fname = positiveFiles[7] #Can use any valid index (not just 3)
 # with open(fname) as f:
 #     for lines in f:
 #         print(lines)
 #         exit
 
+
+#######################
 # Convert to ids matrix
 # Removes punctuation, parentheses, question marks, etc., and leaves only alphanumeric characters
+#######################
 # strip_special_chars = re.compile("[^A-Za-z0-9 ]+")
 
 def cleanSentences(string):
+    print ('Convert to ids matrix...')
     string = string.lower().replace("<br />", " ")
     return re.sub(strip_special_chars, "", string.lower())
 
