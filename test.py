@@ -2,18 +2,55 @@ import numpy as np
 import tensorflow as tf
 from os import listdir
 from os.path import isfile, join
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import re
 import datetime
+from random import randint
+import getopt, sys
+
+###############
+# CLI ARGUMENTS
+###############
+fullCmdArguments = sys.argv  # read commandline arguments, first
+argumentList = fullCmdArguments[1:]  # - further arguments
+# print(argumentList)
+
+# Prepare valid parameters
+unixOptions = "ho:v"
+gnuOptions = ["help", "test", "train", "accuracy"]
+
+# Parse the argument list
+try:
+    arguments, values = getopt.getopt(argumentList, unixOptions, gnuOptions)
+except getopt.error as err:
+    # output error, and return with an error code
+    print (str(err))
+    sys.exit(2)
+
+# Evaluate variables
+for currentArgument, currentValue in arguments:
+    if currentArgument in ("-h", "--help"):
+        print ("Displaying help")
+    elif currentArgument in ("-t", "--test"):
+        print ("Running test")
+        testSet = 1
+    elif currentArgument in ("-T", "--train"):
+        print ("Running training")
+        trainSet = 1
+    elif currentArgument in ("-a", "--accuracy"):
+        print ("Analyzing accuracy...")
+        accuracySet = 1
 
 
+##################
 # Hyper-parameters
-tf.flags.DEFINE_boolean('test', False,
-                        'Should the network perform testing? (default: False)')
-tf.flags.DEFINE_boolean('train', False,
-                        'Should the network perform training? (default: False)')
-tf.flags.DEFINE_boolean('accuracy', False,
-                        'Should the network perform accuracy testing? (default: False)')
+##################
+# tf.flags.DEFINE_boolean('test', False,
+#                         'Should the network perform testing? (default: False)')
+# tf.flags.DEFINE_boolean('train', False,
+#                         'Should the network perform training? (default: False)')
+# tf.flags.DEFINE_boolean('accuracy', False,
+#                         'Should the network perform accuracy testing? (default: False)')
 
 
 #######################
@@ -23,7 +60,7 @@ tf.flags.DEFINE_boolean('accuracy', False,
 strip_special_chars = re.compile("[^A-Za-z0-9 ]+")
 
 def cleanSentences(string):
-    print ('Cleaning sentence...')
+    print ('\nCleaning sentence...')
     string = string.lower().replace("<br />", " ")
     return re.sub(strip_special_chars, "", string.lower())
 
@@ -39,16 +76,21 @@ def printme(teststring):
     return;
 
 
+# TESTING CLI ARGS
+# if sys.argv[1]:
+#     print('this works')
+
+
 ###############
 # LOAD WORDLIST
 ###############
 wordsList = np.load('wordsList.npy')
-print('Loaded the word list!')
+print('Loaded word list!')
 
 wordsList = wordsList.tolist() #Originally loaded as numpy array
 wordsList = [word.decode('UTF-8') for word in wordsList] #Encode words as UTF-8
 wordVectors = np.load('wordVectors.npy')
-print ('Loaded the word vectors!')
+print ('^- Loaded word vectors! \n')
 
 # print(len(wordsList))
 # print(wordVectors.shape)
@@ -65,31 +107,37 @@ print ('Loaded the word vectors!')
 # TEST: SET TEXT STRING
 #######################
 # if FLAGS.test:
-print ('TEST: CONVERT STRING TO TEXT...')
 maxSeqLength = 10  # Maximum length of sentence
 numDimensions = 300  # Dimensions for each word vector
-firstSentence = np.zeros((maxSeqLength), dtype='int32')  # Return a new array of given shape and type, filled with zeros
-firstSentence[0] = wordsList.index("i")  # Search vector for word, gets index
-firstSentence[1] = wordsList.index("thought")
-firstSentence[2] = wordsList.index("the")
-firstSentence[3] = wordsList.index("movie")
-firstSentence[4] = wordsList.index("was")
-firstSentence[5] = wordsList.index("incredible")
-firstSentence[6] = wordsList.index("and")
-firstSentence[7] = wordsList.index("inspiring")
-#firstSentence[8] and firstSentence[9] are going to be 0
-print(firstSentence.shape)
-print(firstSentence)  # Shows the row index for each word
+if 'testSet' in locals():
+    print ('TEST: CONVERT STRING TO VECTOR INTEGER...')
+    # maxSeqLength = 10  # Maximum length of sentence
+    # numDimensions = 300  # Dimensions for each word vector
+    firstSentence = np.zeros((maxSeqLength), dtype='int32')  # Return a new array of given shape and type, filled with zeros
+    firstSentence[0] = wordsList.index("i")  # Search vector for word, gets index
+    firstSentence[1] = wordsList.index("thought")
+    firstSentence[2] = wordsList.index("the")
+    firstSentence[3] = wordsList.index("movie")
+    firstSentence[4] = wordsList.index("was")
+    firstSentence[5] = wordsList.index("incredible")
+    firstSentence[6] = wordsList.index("and")
+    firstSentence[7] = wordsList.index("inspiring")
+    #firstSentence[8] and firstSentence[9] are going to be 0
+    print(firstSentence.shape)
+    print(firstSentence)  # Shows the row index for each word
 
-with tf.Session() as sess:
-    print(tf.nn.embedding_lookup(wordVectors,firstSentence).eval().shape)
+    with tf.Session() as sess:
+    # with tf.session() as sess:
+        print ('^- TEST: CONVERTED STRING:')
+        print(tf.nn.embedding_lookup(wordVectors,firstSentence).eval().shape)
 
-print(printme("A crappy string"))
+    # print(printme("A crappy string"))
 
 
 ####################
 # LOAD TRAINING SETS
 ####################
+print('\n\nLOAD TRAINING SETS...')
 positiveFiles = ['positiveReviews/' + f for f in listdir('positiveReviews/') if isfile(join('positiveReviews/', f))]
 negativeFiles = ['negativeReviews/' + f for f in listdir('negativeReviews/') if isfile(join('negativeReviews/', f))]
 numWords = []
@@ -99,19 +147,19 @@ for pf in positiveFiles:
         line=f.readline()
         counter = len(line.split())
         numWords.append(counter)
-print('Positive files finished')
+print('^- Positive files finished')
 
 for nf in negativeFiles:
     with open(nf, "r") as f:
         line=f.readline()
         counter = len(line.split())
         numWords.append(counter)
-print('Negative files finished')
+print('^- Negative files finished')
 
 numFiles = len(numWords)
-print('The total number of files is', numFiles)
-print('The total number of words in the files is', sum(numWords))
-print('The average number of words in the files is', sum(numWords)/len(numWords))
+print('^- The total number of files is', numFiles)
+print('^- The total number of words in the files is', sum(numWords))
+print('^- The average number of words in the files is', sum(numWords)/len(numWords))
 
 
 #######################################################
@@ -134,16 +182,16 @@ maxSeqLength = 250
 ########################################################
 # Use a single file and transform it into our ids matrix
 ########################################################
-print ('Use a single file and transform it into our ids matrix...')
+print ('\n\nUse a single file and transform it into our ids matrix...')
 fname = positiveFiles[7]  # Can use any valid index (not just 3)
+
 with open(fname) as f:
     for lines in f:
         print(lines)
         exit
 
 
-
-
+# Convert to ids matrix
 firstFile = np.zeros((maxSeqLength), dtype='int32')
 with open(fname) as f:
     indexCounter = 0
@@ -151,6 +199,7 @@ with open(fname) as f:
     cleanedLine = cleanSentences(line)  # remove special chars
     split = cleanedLine.split()  # List of sections in bytes, using sep as the delimiter
     for word in split:
+        print('for word...')
         if indexCounter < maxSeqLength:
             try:
                 firstFile[indexCounter] = wordsList.index(word)
@@ -160,9 +209,8 @@ with open(fname) as f:
 firstFile
 
 # Helper functions for training
-from random import randint
-
 def getTrainBatch():
+    print('getTrainBatch...')
     labels = []
     arr = np.zeros([batchSize, maxSeqLength])
     for i in range(batchSize):
@@ -176,6 +224,7 @@ def getTrainBatch():
     return arr, labels
 
 def getTestBatch():
+    print('getTestBatch...')
     labels = []
     arr = np.zeros([batchSize, maxSeqLength])
     for i in range(batchSize):
@@ -194,12 +243,14 @@ numClasses = 2
 iterations = 100000
 
 # Import placeholder
+print('Import placeholder...')
 tf.reset_default_graph()
 labels = tf.placeholder(tf.float32, [batchSize, numClasses])
 input_data = tf.placeholder(tf.int32, [batchSize, maxSeqLength])
 
 # Get wordvectors
-data = tf.Variable(tf.zeros([batchSize, maxSeqLength, numDimensions]),dtype=tf.float32)
+print('Get wordvectors...')
+data = tf.Variable(tf.zeros([batchSize, maxSeqLength, numDimensions]), dtype=tf.float32)
 data = tf.nn.embedding_lookup(wordVectors,input_data)
 
 # Feed both the LSTM cell and the 3-D tensor full of input data
@@ -216,6 +267,7 @@ last = tf.gather(value, int(value.get_shape()[0]) - 1)
 prediction = (tf.matmul(last, weight) + bias)
 
 # Define correct prediction and accuracy metrics to track how the network is doing
+print('Define correct prediction and accuracy metrics to track how the network is doing...')
 correctPred = tf.equal(tf.argmax(prediction,1), tf.argmax(labels, 1))
 accuracy = tf.reduce_mean(tf.cast(correctPred, tf.float32))
 
@@ -245,7 +297,8 @@ saver.restore(sess, tf.train.latest_checkpoint('models'))
 
 
 # Training
-if FLAGS.train:
+# if FLAGS.train:
+if 'trainSet' in locals():
     sess = tf.InteractiveSession()
     saver = tf.train.Saver()
     sess.run(tf.global_variables_initializer())
@@ -268,7 +321,8 @@ if FLAGS.train:
 
 
 # Load movie reviews from test set and get accuracy rating. These are reviews that the model has not been trained on.
-if FLAGS.accuracy:
+# if FLAGS.accuracy:
+if 'accuracySet' in locals():
     iterations = 10
 
     for i in range(iterations):
