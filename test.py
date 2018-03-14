@@ -41,44 +41,22 @@ for currentArgument, currentValue in arguments:
         print ("Analyzing accuracy...")
         accuracySet = 1
 
-
-##################
-# Hyper-parameters
-##################
-# tf.flags.DEFINE_boolean('test', False,
-#                         'Should the network perform testing? (default: False)')
-# tf.flags.DEFINE_boolean('train', False,
-#                         'Should the network perform training? (default: False)')
-# tf.flags.DEFINE_boolean('accuracy', False,
-#                         'Should the network perform accuracy testing? (default: False)')
-
-
-#######################
-# Convert to ids matrix
-# Removes punctuation, parentheses, question marks, etc., and leaves only alphanumeric characters
-#######################
 strip_special_chars = re.compile("[^A-Za-z0-9 ]+")
 
+
 def cleanSentences(string):
-    print ('\nCleaning sentence...')
+    print ('\nCleaning sentence (remove special chars)...')
     string = string.lower().replace("<br />", " ")
     return re.sub(strip_special_chars, "", string.lower())
 
 
-##########################
-# GET VECTORS FOR A STRING
-##########################
+# GET VECTORS FOR A STRING (MJC TEST)
 def printme(teststring):
     print('GET VECTORS FOR A STRING...')
     # print str
     # print(tf.string_split(str))
     print(tf.string_split(cleanSentences(teststring)))
     return;
-
-
-# TESTING CLI ARGS
-# if sys.argv[1]:
-#     print('this works')
 
 
 ###############
@@ -106,11 +84,10 @@ print ('^- Loaded word vectors! \n')
 #######################
 # TEST: SET TEXT STRING
 #######################
-# if FLAGS.test:
 maxSeqLength = 10  # Maximum length of sentence
 numDimensions = 300  # Dimensions for each word vector
 if 'testSet' in locals():
-    print ('TEST: CONVERT STRING TO VECTOR INTEGER...')
+    print ('TEST NOW RUNNING: CONVERT STRING TO VECTOR INTEGER...')
     # maxSeqLength = 10  # Maximum length of sentence
     # numDimensions = 300  # Dimensions for each word vector
     firstSentence = np.zeros((maxSeqLength), dtype='int32')  # Return a new array of given shape and type, filled with zeros
@@ -126,10 +103,10 @@ if 'testSet' in locals():
     print(firstSentence.shape)
     print(firstSentence)  # Shows the row index for each word
 
-    with tf.Session() as sess:
+    with tf.Session() as sess:  # Last working
     # with tf.session() as sess:
         print ('^- TEST: CONVERTED STRING:')
-        print(tf.nn.embedding_lookup(wordVectors,firstSentence).eval().shape)
+        print(tf.nn.embedding_lookup(wordVectors, firstSentence).eval().shape)
 
     # print(printme("A crappy string"))
 
@@ -191,7 +168,10 @@ with open(fname) as f:
         exit
 
 
+#######################
 # Convert to ids matrix
+# Removes punctuation, parentheses, question marks, etc., and leaves only alphanumeric characters
+#######################
 firstFile = np.zeros((maxSeqLength), dtype='int32')
 with open(fname) as f:
     indexCounter = 0
@@ -243,17 +223,19 @@ numClasses = 2
 iterations = 100000
 
 # Import placeholder
-print('Import placeholder...')
+print('\n\nINITIALIZING..')
+print('^- Import placeholder...')
 tf.reset_default_graph()
 labels = tf.placeholder(tf.float32, [batchSize, numClasses])
 input_data = tf.placeholder(tf.int32, [batchSize, maxSeqLength])
 
 # Get wordvectors
-print('Get wordvectors...')
+print('^- Fetching wordvectors...')
 data = tf.Variable(tf.zeros([batchSize, maxSeqLength, numDimensions]), dtype=tf.float32)
 data = tf.nn.embedding_lookup(wordVectors,input_data)
 
-# Feed both the LSTM cell and the 3-D tensor full of input data
+# Feed both the LSTM cell and the 3D tensor full of input data
+print('^- Feeding LSTM cell & 3D tensor w/ input data...')
 lstmCell = tf.contrib.rnn.BasicLSTMCell(lstmUnits)
 lstmCell = tf.contrib.rnn.DropoutWrapper(cell=lstmCell, output_keep_prob=0.75)
 value, _ = tf.nn.dynamic_rnn(lstmCell, data, dtype=tf.float32)
@@ -267,7 +249,7 @@ last = tf.gather(value, int(value.get_shape()[0]) - 1)
 prediction = (tf.matmul(last, weight) + bias)
 
 # Define correct prediction and accuracy metrics to track how the network is doing
-print('Define correct prediction and accuracy metrics to track how the network is doing...')
+print('^- Define correct prediction and accuracy metrics to track how the network is doing...')
 correctPred = tf.equal(tf.argmax(prediction,1), tf.argmax(labels, 1))
 accuracy = tf.reduce_mean(tf.cast(correctPred, tf.float32))
 
@@ -281,6 +263,7 @@ optimizer = tf.train.AdamOptimizer().minimize(loss)
 # If you'd like to use Tensorboard to visualize the loss and accuracy
 # values, you can also run and the modify the following code.
 #####################################################################
+print('\n\nEnabling Tensorboard support...')
 tf.summary.scalar('Loss', loss)
 tf.summary.scalar('Accuracy', accuracy)
 merged = tf.summary.merge_all()
@@ -291,6 +274,7 @@ writer = tf.summary.FileWriter(logdir, sess.graph)
 ########################
 # Load pre-trained model
 ########################
+print('\n\nLoad pre-trained model...')
 sess = tf.InteractiveSession()
 saver = tf.train.Saver()
 saver.restore(sess, tf.train.latest_checkpoint('models'))
@@ -299,6 +283,7 @@ saver.restore(sess, tf.train.latest_checkpoint('models'))
 # Training
 # if FLAGS.train:
 if 'trainSet' in locals():
+    print('\n\ntrainSet...')
     sess = tf.InteractiveSession()
     saver = tf.train.Saver()
     sess.run(tf.global_variables_initializer())
@@ -323,6 +308,7 @@ if 'trainSet' in locals():
 # Load movie reviews from test set and get accuracy rating. These are reviews that the model has not been trained on.
 # if FLAGS.accuracy:
 if 'accuracySet' in locals():
+    print('\n\naccuracySet...')
     iterations = 10
 
     for i in range(iterations):
