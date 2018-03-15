@@ -59,6 +59,8 @@ def printme(teststring):
 
     # 1a. Split sentence string to a list
     words = teststring.split()
+    print('words: ')
+    print(words)
 
     # 1b. This function doesn't work correctly
     # print(tf.string_split(teststring))
@@ -66,11 +68,29 @@ def printme(teststring):
 
     # 1c. Use Numpy array
     # Try3: Build array via loop
-    testArray = np.array([])
+    # testArray = np.array([])
+    testArray = []
+    testArrayToNumpy = np.array([])
+    i = 0
     for loop in words:
-        testArray = np.append(testArray, loop)  # https://stackoverflow.com/a/28944075
+        i = i + 1
+        print('loop: ')
+        print(loop)
 
-    return testArray
+        # Search vocab and convert to integer
+        convertedWord = wordsList.index(loop)
+        # convertedWord2 = np.rint(convertedWord)
+        print('\n^- convertedWord:')
+        print(convertedWord)
+
+        # testArray = np.append(testArray, convertedWord)  # https://stackoverflow.com/a/28944075 (BROKEN)
+        # testArray = np.append(testArray, np.rint(convertedWord))  # https://stackoverflow.com/a/28944075 (BROKEN)
+        testArray.insert(i, convertedWord)  # Python array (LAST WORKING)
+        testArrayToNumpy = np.array(testArray)
+
+    print('\n\n*- testArray: ')
+    print(testArrayToNumpy)
+    return testArrayToNumpy
 
 
 ###############
@@ -102,23 +122,28 @@ print ('^- Loaded word vectors!')
 maxSeqLength = 10  # Maximum length of sentence
 numDimensions = 300  # Dimensions for each word vector
 if 'testSet' in locals():
-    print ('TESTING: NOW RUNNING: CONVERT STRING TO VECTOR INTEGER...')
+    print ('TESTING: NOW RUNNING...')
     # maxSeqLength = 10  # Maximum length of sentence
     # numDimensions = 300  # Dimensions for each word vector
 
     # Return a new array of given shape and type, filled with zeros
     firstSentence = np.zeros((maxSeqLength), dtype='int32')
-    # firstSentence[0] = wordsList.index("i")  # Search vector for word, gets index
-    # firstSentence[1] = wordsList.index("thought")
-    # firstSentence[2] = wordsList.index("the")
-    # firstSentence[3] = wordsList.index("movie")
-    # firstSentence[4] = wordsList.index("was")
-    # firstSentence[5] = wordsList.index("incredible")
-    # firstSentence[6] = wordsList.index("and")
-    # firstSentence[7] = wordsList.index("inspiring")
-    # #firstSentence[8] and firstSentence[9] are going to be 0
 
-    firstSentence = printme("A crappy string")
+    firstSentence[0] = wordsList.index("i")  # Search vector for word, gets index
+    firstSentence[1] = wordsList.index("thought")
+    firstSentence[2] = wordsList.index("the")
+    firstSentence[3] = wordsList.index("movie")
+    firstSentence[4] = wordsList.index("was")
+    firstSentence[5] = wordsList.index("incredible")
+    firstSentence[6] = wordsList.index("and")
+    firstSentence[7] = wordsList.index("inspiring")
+    #firstSentence[8] and firstSentence[9] are going to be 0
+    print('\nfirstSentence: ')
+    print(firstSentence)
+
+    firstSentence = printme("i thought the movie was incredible and inspiring")
+    print('\nfirstSentence: ')
+    print(firstSentence)
 
     print('\n\n firstSentence as words array: ')
     print(firstSentence)  # Shows words from sentence string as array
@@ -131,8 +156,6 @@ if 'testSet' in locals():
         # print ('^- TEST: CONVERTED STRING:')
         # Looks up ids in a list of embedding tensors
         print(tf.nn.embedding_lookup(wordVectors, firstSentence).eval().shape)
-
-    # print(printme("A crappy string"))
 
 
 ##############
