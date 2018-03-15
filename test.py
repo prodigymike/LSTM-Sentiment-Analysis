@@ -7,6 +7,8 @@ import re
 import datetime
 from random import randint
 import getopt, sys
+# import logging
+from tqdm import tqdm
 
 ###############
 # CLI ARGUMENTS
@@ -378,18 +380,23 @@ if 'trainSet' in locals():
     saver = tf.train.Saver()
     sess.run(tf.global_variables_initializer())
 
-    for i in range(iterations):
+    # for i in range(iterations):
+    for i in tqdm(range(iterations)):
+        # print('^- Running batch...')  # Spammy
         # Next Batch of reviews
         nextBatch, nextBatchLabels = getTrainBatch();
         sess.run(optimizer, {input_data: nextBatch, labels: nextBatchLabels})
 
         # Write summary to Tensorboard
         if (i % 50 == 0):
+            # print('^- Writing summary to Tensorboard...')  # Spammy
             summary = sess.run(merged, {input_data: nextBatch, labels: nextBatchLabels})
             writer.add_summary(summary, i)
+            # logging.getLogger().setLevel(logging.INFO)
 
         # Save the network every 10,000 training iterations
-        if (i % 10000 == 0 and i != 0):
+        # if (i % 10000 == 0 and i != 0):
+        if (i % 1000 == 0 and i != 0):
             save_path = saver.save(sess, "models/pretrained_lstm.ckpt", global_step=i)
             print("saved to %s" % save_path)
     writer.close()
