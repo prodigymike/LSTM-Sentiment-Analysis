@@ -404,7 +404,7 @@ if 'accuracySet' in locals():
     print('\n\nRUNNING ACCURACY TESTS...')
     iterations = 10
 
-    # for i in range(iterations):
-    for i in tqdm(range(iterations)):
+    for i in range(iterations):
+    # for i in tqdm(range(iterations)):
         nextBatch, nextBatchLabels = getTestBatch()
         print("^- Accuracy for this batch:", (sess.run(accuracy, {input_data: nextBatch, labels: nextBatchLabels})) * 100)
