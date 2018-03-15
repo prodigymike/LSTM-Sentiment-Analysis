@@ -56,15 +56,21 @@ def cleanSentences(string):
 # GET VECTORS FOR A STRING (MJC TEST)
 def printme(teststring):
     print('\n\n-- GET VECTORS FOR A STRING: ' + teststring)
-    print(tf.string_split(teststring))
-    words = tf.string_split(teststring, " ")
-    # print(tf.string_split(cleanSentences(teststring)))
-    # return tf.string_split(teststring)
 
-    # Split sentence string
-    # Return list of words in string, using str as delimiter (splits on whitespace if unspecified)
-    # words = teststring.split()
-    return words
+    # 1a. Split sentence string to a list
+    words = teststring.split()
+
+    # 1b. This function doesn't work correctly
+    # print(tf.string_split(teststring))
+    # words = tf.string_split(teststring, " ")  # no good
+
+    # 1c. Use Numpy array
+    # Try3: Build array via loop
+    testArray = np.array([])
+    for loop in words:
+        testArray = np.append(testArray, loop)  # https://stackoverflow.com/a/28944075
+
+    return testArray
 
 
 ###############
