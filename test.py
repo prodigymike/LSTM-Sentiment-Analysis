@@ -395,8 +395,8 @@ if 'trainSet' in locals():
             # logging.getLogger().setLevel(logging.INFO)
 
         # Save the network every 10,000 training iterations
-        # if (i % 10000 == 0 and i != 0):
-        if (i % 1000 == 0 and i != 0):
+        if (i % 10000 == 0 and i != 0):
+        # if (i % 1000 == 0 and i != 0):
             save_path = saver.save(sess, "models/pretrained_lstm.ckpt", global_step=i)
             print("saved to %s" % save_path)
     writer.close()
