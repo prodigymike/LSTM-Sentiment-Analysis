@@ -64,11 +64,6 @@ def printme(teststring):
     print('words: ')
     print(words)
 
-    # 1b. This function doesn't work correctly
-    # print(tf.string_split(teststring))
-    # words = tf.string_split(teststring, " ")  # no good
-
-    # 1c. Use Numpy array
     # Try3: Build array via loop
     # testArray = np.array([])
     testArray = []
