@@ -236,7 +236,7 @@ firstFile
 ##########################################
 # CONVERT ALL 50K STRINGS TO AN IDS MATRIX
 ##########################################
-ids = np.zeros((numFiles, maxSeqLength), dtype='int32')
+# ids = np.zeros((numFiles, maxSeqLength), dtype='int32')
 # fileCounter = 0
 # for pf in positiveFiles:
 #    with open(pf, "r") as f:
@@ -271,6 +271,7 @@ ids = np.zeros((numFiles, maxSeqLength), dtype='int32')
 #        fileCounter = fileCounter + 1
 # #Pass into embedding function and see if it evaluates.
 # np.save('idsMatrix', ids)
+ids = np.load('idsMatrix.npy')
 
 
 # Helper functions for training
