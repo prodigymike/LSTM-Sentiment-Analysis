@@ -17,7 +17,7 @@ argumentList = fullCmdArguments[1:]  # - further arguments
 
 # Prepare valid parameters
 unixOptions = "ho:v"
-gnuOptions = ["help", "test", "train", "accuracy"]
+gnuOptions = ["help", "test", "train", "accuracy", "load"]
 
 # Parse the argument list
 try:
@@ -40,6 +40,9 @@ for currentArgument, currentValue in arguments:
     elif currentArgument in ("-a", "--accuracy"):
         print ("Analyzing accuracy...")
         accuracySet = 1
+    elif currentArgument in ("-l", "--load"):
+        print ("Loading pre-trained data...")
+        loadpreSet = 1
 
 strip_special_chars = re.compile("[^A-Za-z0-9 ]+")
 
@@ -52,11 +55,16 @@ def cleanSentences(string):
 
 # GET VECTORS FOR A STRING (MJC TEST)
 def printme(teststring):
-    print('GET VECTORS FOR A STRING...')
-    # print str
-    # print(tf.string_split(str))
-    print(tf.string_split(cleanSentences(teststring)))
-    return;
+    print('\n\n-- GET VECTORS FOR A STRING: ' + teststring)
+    print(tf.string_split(teststring))
+    words = tf.string_split(teststring, " ")
+    # print(tf.string_split(cleanSentences(teststring)))
+    # return tf.string_split(teststring)
+
+    # Split sentence string
+    # Return list of words in string, using str as delimiter (splits on whitespace if unspecified)
+    # words = teststring.split()
+    return words
 
 
 ###############
@@ -88,24 +96,33 @@ print ('^- Loaded word vectors!')
 maxSeqLength = 10  # Maximum length of sentence
 numDimensions = 300  # Dimensions for each word vector
 if 'testSet' in locals():
-    print ('TEST NOW RUNNING: CONVERT STRING TO VECTOR INTEGER...')
+    print ('TESTING: NOW RUNNING: CONVERT STRING TO VECTOR INTEGER...')
     # maxSeqLength = 10  # Maximum length of sentence
     # numDimensions = 300  # Dimensions for each word vector
-    firstSentence = np.zeros((maxSeqLength), dtype='int32')  # Return a new array of given shape and type, filled with zeros
-    firstSentence[0] = wordsList.index("i")  # Search vector for word, gets index
-    firstSentence[1] = wordsList.index("thought")
-    firstSentence[2] = wordsList.index("the")
-    firstSentence[3] = wordsList.index("movie")
-    firstSentence[4] = wordsList.index("was")
-    firstSentence[5] = wordsList.index("incredible")
-    firstSentence[6] = wordsList.index("and")
-    firstSentence[7] = wordsList.index("inspiring")
-    #firstSentence[8] and firstSentence[9] are going to be 0
-    print(firstSentence.shape)
+
+    # Return a new array of given shape and type, filled with zeros
+    firstSentence = np.zeros((maxSeqLength), dtype='int32')
+    # firstSentence[0] = wordsList.index("i")  # Search vector for word, gets index
+    # firstSentence[1] = wordsList.index("thought")
+    # firstSentence[2] = wordsList.index("the")
+    # firstSentence[3] = wordsList.index("movie")
+    # firstSentence[4] = wordsList.index("was")
+    # firstSentence[5] = wordsList.index("incredible")
+    # firstSentence[6] = wordsList.index("and")
+    # firstSentence[7] = wordsList.index("inspiring")
+    # #firstSentence[8] and firstSentence[9] are going to be 0
+
+    firstSentence = printme("A crappy string")
+
+    print('\n\n firstSentence as words array: ')
+    print(firstSentence)  # Shows words from sentence string as array
+
+    print('\n\n firstSentence as vector ids array: ')
+    print(firstSentence.shape)  # Returns the shape of a tensor
     print(firstSentence)  # Shows the row index for each word
 
-    with tf.Session() as sess:  # Last working
-        print ('^- TEST: CONVERTED STRING:')
+    with tf.Session() as sess:
+        # print ('^- TEST: CONVERTED STRING:')
         # Looks up ids in a list of embedding tensors
         print(tf.nn.embedding_lookup(wordVectors, firstSentence).eval().shape)
 
@@ -160,7 +177,7 @@ maxSeqLength = 250
 ########################################################
 # Use a single file and transform it into our ids matrix
 ########################################################
-print ('\n\nUse a single file and transform it into our ids matrix...')
+print ('\n\nCONVERTING SINGLE FILE TO ID MATRIX...')
 fname = positiveFiles[7]  # Can use any valid index (not just 3)
 
 with open(fname) as f:
@@ -180,7 +197,7 @@ with open(fname) as f:
     cleanedLine = cleanSentences(line)  # remove special chars
     split = cleanedLine.split()  # List of sections in bytes, using sep as the delimiter
     for word in split:
-        print('for word...')
+        # print('for word...')
         if indexCounter < maxSeqLength:
             try:
                 firstFile[indexCounter] = wordsList.index(word)
@@ -189,9 +206,50 @@ with open(fname) as f:
         indexCounter = indexCounter + 1
 firstFile
 
+
+##########################################
+# CONVERT ALL 50K STRINGS TO AN IDS MATRIX
+##########################################
+ids = np.zeros((numFiles, maxSeqLength), dtype='int32')
+# fileCounter = 0
+# for pf in positiveFiles:
+#    with open(pf, "r") as f:
+#        indexCounter = 0
+#        line=f.readline()
+#        cleanedLine = cleanSentences(line)
+#        split = cleanedLine.split()
+#        for word in split:
+#            try:
+#                ids[fileCounter][indexCounter] = wordsList.index(word)
+#            except ValueError:
+#                ids[fileCounter][indexCounter] = 399999 #Vector for unkown words
+#            indexCounter = indexCounter + 1
+#            if indexCounter >= maxSeqLength:
+#                break
+#        fileCounter = fileCounter + 1
+
+# for nf in negativeFiles:
+#    with open(nf, "r") as f:
+#        indexCounter = 0
+#        line=f.readline()
+#        cleanedLine = cleanSentences(line)
+#        split = cleanedLine.split()
+#        for word in split:
+#            try:
+#                ids[fileCounter][indexCounter] = wordsList.index(word)
+#            except ValueError:
+#                ids[fileCounter][indexCounter] = 399999 #Vector for unkown words
+#            indexCounter = indexCounter + 1
+#            if indexCounter >= maxSeqLength:
+#                break
+#        fileCounter = fileCounter + 1
+# #Pass into embedding function and see if it evaluates.
+# np.save('idsMatrix', ids)
+
+
 # Helper functions for training
 def getTrainBatch():
-    print('getTrainBatch...')
+    # print('getTrainBatch...')
     labels = []
     arr = np.zeros([batchSize, maxSeqLength])
     for i in range(batchSize):
@@ -204,8 +262,9 @@ def getTrainBatch():
         arr[i] = ids[num-1:num]
     return arr, labels
 
+
 def getTestBatch():
-    print('getTestBatch...')
+    # print('getTestBatch...')
     labels = []
     arr = np.zeros([batchSize, maxSeqLength])
     for i in range(batchSize):
@@ -265,7 +324,7 @@ optimizer = tf.train.AdamOptimizer().minimize(loss)
 # values, you can also run and the modify the following code.
 #####################################################################
 with tf.Session() as sess:  # New
-    print('\n\nEnabling Tensorboard support...')
+    # print('\n\nEnabling Tensorboard support...')
     tf.summary.scalar('Loss', loss)
     tf.summary.scalar('Accuracy', accuracy)
     merged = tf.summary.merge_all()
@@ -276,10 +335,11 @@ with tf.Session() as sess:  # New
 ########################
 # Load pre-trained model
 ########################
-print('\n\nLoad pre-trained model...')
-sess = tf.InteractiveSession()
-saver = tf.train.Saver()
-saver.restore(sess, tf.train.latest_checkpoint('models'))
+if 'loadpreSet' in locals():
+    print('\n\nLOADING PRE-TRAINED MODEL...')
+    sess = tf.InteractiveSession()
+    saver = tf.train.Saver()
+    saver.restore(sess, tf.train.latest_checkpoint('models'))
 
 
 # Training
@@ -309,9 +369,9 @@ if 'trainSet' in locals():
 # Load movie reviews from test set and get accuracy rating. These are reviews that the model has not been trained on.
 # if FLAGS.accuracy:
 if 'accuracySet' in locals():
-    print('\n\naccuracySet...')
+    print('\n\nRUNNING ACCURACY TESTS...')
     iterations = 10
 
     for i in range(iterations):
-        nextBatch, nextBatchLabels = getTestBatch();
-        print("Accuracy for this batch:", (sess.run(accuracy, {input_data: nextBatch, labels: nextBatchLabels})) * 100)
+        nextBatch, nextBatchLabels = getTestBatch()
+        print("^- Accuracy for this batch:", (sess.run(accuracy, {input_data: nextBatch, labels: nextBatchLabels})) * 100)
