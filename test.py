@@ -416,7 +416,7 @@ if 'accuracySet' in locals():
 #
 if 'saveModelSet' in locals():
     print('\n\nSAVING MODEL...')
-    export_dir = "models/"
+    export_dir = "Saved_Models/"
     # ...
     builder = tf.saved_model.builder.SavedModelBuilder(export_dir)
     with tf.Session(graph=tf.Graph()) as sess:
