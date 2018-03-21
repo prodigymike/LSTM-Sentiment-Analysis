@@ -369,7 +369,8 @@ def export_saved_model(version, path, sess=None):
     original_assets_directory = "/home/trzn/Documents/AIWork/LSTM-Sentiment-Analysis/models"
     # original_assets_directory = path
     original_assets_filename = "foo.txt"
-    original_assets_filepath = write_assets(original_assets_directory, original_assets_filename)
+    # original_assets_filepath = write_assets(original_assets_directory, original_assets_filename)
+    original_assets_filepath = '/home/trzn/Documents/AIWork/LSTM-Sentiment-Analysis/wordVectors.npy'
 
     # Assets: Set up the assets collection.
     assets_filepath = tf.constant(original_assets_filepath)
