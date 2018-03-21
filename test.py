@@ -384,7 +384,8 @@ def export_saved_model(version, path, sess=None):
     # Define the signature def map here
     legacy_init_op = tf.group(tf.tables_initializer(), name='legacy_init_op')
     builder.add_meta_graph_and_variables(
-        sess, [tf.saved_model.tag_constants.SERVING],
+        # sess, [tf.saved_model.tag_constants.SERVING],
+        sess, [tf.saved_model.tag_constants.TRAINING],
         # signature_def_map={
         #     # 'predict_xxx': predict_signature_def_map
         #     'predict_text': predict_signature_def_map
