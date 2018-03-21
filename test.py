@@ -307,6 +307,84 @@ def getTestBatch():
         arr[i] = ids[num-1:num]
     return arr, labels
 
+
+def export_saved_model(version, path, sess=None):
+    tf.app.flags.DEFINE_integer('version', version, 'version number of the model.')
+    tf.app.flags.DEFINE_string('work_dir', path, 'your older model  directory.')
+    # tf.app.flags.DEFINE_string('model_dir', '/tmp/model_name', 'saved model directory')
+    tf.app.flags.DEFINE_string('model_dir', 'tmp/model_name', 'saved model directory')
+    FLAGS = tf.app.flags.FLAGS
+
+    # you can give the session and export your model immediately after training
+    if not sess:
+        saver = tf.train.import_meta_graph(os.path.join(path, 'pretrained_lstm.ckpt-1000.meta'))
+        saver.restore(sess, tf.train.latest_checkpoint(path))
+
+    export_path = os.path.join(
+        tf.compat.as_bytes(FLAGS.model_dir),
+        tf.compat.as_bytes(str(FLAGS.version)))
+    builder = tf.saved_model.builder.SavedModelBuilder(export_path)
+
+    # define the signature def map here
+    # 1 - tf github
+    # signature_def: {
+    #     key: "my_prediction_signature"
+    #     value: {
+    #         inputs: {
+    #             key: "images"
+    #             value: {
+    #                 name: "x:0"
+    #                 dtype: ...
+    #                 tensor_shape: ...
+    #             }
+    #         }
+    #         outputs: {
+    #             key: "scores"
+    #             value: {
+    #                 name: "y:0"
+    #                 dtype: ...
+    #                 tensor_shape: ...
+    #             }
+    #         }
+    #         method_name: "tensorflow/serving/predict"
+    #     }
+    # }
+
+    # 2
+    feature_configs = {
+        'x': tf.FixedLenFeature(shape=[], dtype=tf.string),
+        'y': tf.FixedLenFeature(shape=[], dtype=tf.string)
+    }
+    serialized_example = tf.placeholder(tf.string, name="tf_example")
+    # serialized_example = tf.placeholder(tf.string, name="input_data")
+    tf_example = tf.parse_example(serialized_example, feature_configs)
+    x = tf.identity(tf_example['x'], name='x')
+    y = tf.identity(tf_example['y'], name='y')
+    predict_input = x
+    predict_output = y
+    predict_signature_def_map = tf.saved_model.signature_def_utils.predict_signature_def(
+        inputs={
+            tf.saved_model.signature_constants.PREDICT_INPUTS: predict_input
+        },
+        outputs={
+            tf.saved_model.signature_constants.PREDICT_OUTPUTS: predict_output
+        }
+    )
+    # define the signature def map here
+
+    legacy_init_op = tf.group(tf.tables_initializer(), name='legacy_init_op')
+    builder.add_meta_graph_and_variables(
+        sess, [tf.saved_model.tag_constants.SERVING],
+        signature_def_map={
+            'predict_xxx': predict_signature_def_map
+        },
+        legacy_init_op=legacy_init_op
+    )
+
+    builder.save()
+    print('Export SavedModel!')
+
+
 # Hyperparameters
 batchSize = 24
 lstmUnits = 64
@@ -400,6 +478,8 @@ if 'trainSet' in locals():
         if (i % 1000 == 0 and i != 0):
             save_path = saver.save(sess, "models/pretrained_lstm.ckpt", global_step=i)
             print("saved to %s" % save_path)
+            # Also save 'savedModel'
+            export_saved_model(1, 'models/', sess)
     writer.close()
 
 
@@ -418,19 +498,20 @@ if 'accuracySet' in locals():
 #
 if 'saveModelSet' in locals():
     print('\n\nSAVING MODEL...')
-    export_dir = "Saved_Models/"
-    # ...
-    builder = tf.saved_model.builder.SavedModelBuilder(export_dir)
-    with tf.Session(graph=tf.Graph()) as sess:
-        # ...
-        builder.add_meta_graph_and_variables(sess,
-                                             [tag_constants.TRAINING],
-                                             signature_def_map=foo_signatures,
-                                             assets_collection=foo_assets)
-    # ...
-    # Add a second MetaGraphDef for inference.
-    with tf.Session(graph=tf.Graph()) as sess:
-        # ...
-        builder.add_meta_graph([tag_constants.SERVING])
-    # ...
-    builder.save()
+    # export_dir = "Saved_Models/"
+    # # ...
+    # builder = tf.saved_model.builder.SavedModelBuilder(export_dir)
+    # with tf.Session(graph=tf.Graph()) as sess:
+    #     # ...
+    #     builder.add_meta_graph_and_variables(sess,
+    #                                          [tag_constants.TRAINING],
+    #                                          signature_def_map=foo_signatures,
+    #                                          assets_collection=foo_assets)
+    # # ...
+    # # Add a second MetaGraphDef for inference.
+    # with tf.Session(graph=tf.Graph()) as sess:
+    #     # ...
+    #     builder.add_meta_graph([tag_constants.SERVING])
+    # # ...
+    # builder.save()
+    export_saved_model(1, 'models/')
