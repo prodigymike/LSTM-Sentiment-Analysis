@@ -519,4 +519,4 @@ if 'saveModelSet' in locals():
     #     builder.add_meta_graph([tag_constants.SERVING])
     # # ...
     # builder.save()
-    export_saved_model(1, 'models/')
+    export_saved_model(1, '/home/trzn/Documents/AIWork/LSTM-Sentiment-Analysis/models/')
