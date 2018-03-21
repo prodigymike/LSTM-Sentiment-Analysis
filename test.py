@@ -370,8 +370,8 @@ def export_saved_model(version, path, sess=None):
 
     # SavedModel.
     # Assets: Create an assets file that can be saved and restored as part of the
-    # original_assets_directory = "/tmp/original/export/assets"
-    original_assets_directory = path
+    original_assets_directory = "/home/trzn/Documents/AIWork/LSTM-Sentiment-Analysis/models"
+    # original_assets_directory = path
     original_assets_filename = "foo.txt"
     original_assets_filepath = _write_assets(original_assets_directory,
                                              original_assets_filename)
