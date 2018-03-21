@@ -370,22 +370,22 @@ def export_saved_model(version, path, sess=None):
     )
 
     # SavedModel.
-    # Assets: Create an assets file that can be saved and restored as part of the
-    original_assets_directory = "/home/trzn/Documents/AIWork/LSTM-Sentiment-Analysis/models"
-    # original_assets_directory = path
-    original_assets_filename = "foo.txt"
-    original_assets_filepath = _write_assets(original_assets_directory,
-                                             original_assets_filename)
-
-    # Assets: Set up the assets collection.
-    assets_filepath = tf.constant(original_assets_filepath)
-    tf.add_to_collection(tf.GraphKeys.ASSET_FILEPATHS, assets_filepath)
-    filename_tensor = tf.Variable(
-        original_assets_filename,
-        name="filename_tensor",
-        trainable=False,
-        collections=[])
-    assign_filename_op = filename_tensor.assign(original_assets_filename)
+    # # Assets: Create an assets file that can be saved and restored as part of the
+    # original_assets_directory = "/home/trzn/Documents/AIWork/LSTM-Sentiment-Analysis/models"
+    # # original_assets_directory = path
+    # original_assets_filename = "foo.txt"
+    # original_assets_filepath = _write_assets(original_assets_directory,
+    #                                          original_assets_filename)
+    #
+    # # Assets: Set up the assets collection.
+    # assets_filepath = tf.constant(original_assets_filepath)
+    # tf.add_to_collection(tf.GraphKeys.ASSET_FILEPATHS, assets_filepath)
+    # filename_tensor = tf.Variable(
+    #     original_assets_filename,
+    #     name="filename_tensor",
+    #     trainable=False,
+    #     collections=[])
+    # assign_filename_op = filename_tensor.assign(original_assets_filename)
 
     # define the signature def map here
     legacy_init_op = tf.group(tf.tables_initializer(), name='legacy_init_op')
