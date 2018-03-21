@@ -119,8 +119,8 @@ def write_assets(assets_directory, assets_filename):
 wordsList = np.load('wordsList.npy')
 print('Loaded word list!')
 
-wordsList = wordsList.tolist() #Originally loaded as numpy array
-wordsList = [word.decode('UTF-8') for word in wordsList] #Encode words as UTF-8
+wordsList = wordsList.tolist()  # Originally loaded as numpy array
+wordsList = [word.decode('UTF-8') for word in wordsList]  # Encode words as UTF-8
 wordVectors = np.load('wordVectors.npy')
 print ('^- Loaded word vectors!')
 
@@ -344,7 +344,7 @@ def export_saved_model(version, path, sess=None):
         tf.compat.as_bytes(str(FLAGS.version)))
     builder = tf.saved_model.builder.SavedModelBuilder(export_path)
 
-    # define the signature def map here
+    # Define the signature def map here
     feature_configs = {
         'x': tf.FixedLenFeature(shape=[], dtype=tf.string),
         'y': tf.FixedLenFeature(shape=[], dtype=tf.string)
@@ -381,7 +381,7 @@ def export_saved_model(version, path, sess=None):
         collections=[])
     assign_filename_op = filename_tensor.assign(original_assets_filename)
 
-    # define the signature def map here
+    # Define the signature def map here
     legacy_init_op = tf.group(tf.tables_initializer(), name='legacy_init_op')
     builder.add_meta_graph_and_variables(
         sess, [tf.saved_model.tag_constants.SERVING],
@@ -394,8 +394,9 @@ def export_saved_model(version, path, sess=None):
         signature_def_map={
             'predict_text': predict_signature_def_map
         },
-        assets_collection=tf.get_collection(tf.GraphKeys.ASSET_FILEPATHS),
-        legacy_init_op=tf.group(assign_filename_op)
+        # legacy_init_op=tf.group(assign_filename_op),
+        legacy_init_op=tf.group(assign_filename_op, tf.tables_initializer(), name='legacy_init_op'),  # merged
+        assets_collection=tf.get_collection(tf.GraphKeys.ASSET_FILEPATHS)
     )
 
     builder.save()
