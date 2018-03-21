@@ -402,7 +402,8 @@ def export_saved_model(version, path, sess=None):
         # assets_collection=wordVectors  # TypeError: Asset path tensor must be a Tensor.
         # assets_collection=np.load('wordVectors.npy')  # TypeError: Asset path tensor must be a Tensor.
         # assets_collection=wordVectors.shape  # TypeError: Asset path tensor must be a Tensor.
-        assets_collection=tf.convert_to_tensor(wordVectors)
+        assets_collection=tf.convert_to_tensor(wordVectors, np.float32)
+        # assets_collection=tf.convert_to_tensor(wordVectors.shape, np.float32)
     )
 
     builder.save()
