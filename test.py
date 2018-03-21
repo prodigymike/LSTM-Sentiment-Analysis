@@ -385,18 +385,17 @@ def export_saved_model(version, path, sess=None):
     legacy_init_op = tf.group(tf.tables_initializer(), name='legacy_init_op')
     builder.add_meta_graph_and_variables(
         sess, [tf.saved_model.tag_constants.SERVING],
-        signature_def_map={
-            # 'predict_xxx': predict_signature_def_map
-            'predict_text': predict_signature_def_map
-        },
-        legacy_init_op=legacy_init_op
-        # Save assets!
         # signature_def_map={
+        #     # 'predict_xxx': predict_signature_def_map
         #     'predict_text': predict_signature_def_map
         # },
-        # assets_collection=tf.get_collection(tf.GraphKeys.ASSET_FILEPATHS),
-        # # legacy_init_op=legacy_init_op
-        # legacy_init_op=tf.group(assign_filename_op)
+        # legacy_init_op=legacy_init_op
+        # Save assets!
+        signature_def_map={
+            'predict_text': predict_signature_def_map
+        },
+        assets_collection=tf.get_collection(tf.GraphKeys.ASSET_FILEPATHS),
+        legacy_init_op=tf.group(assign_filename_op)
     )
 
     builder.save()
