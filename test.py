@@ -95,7 +95,7 @@ def printme(teststring):
     return testArrayToNumpy
 
 
-def _write_assets(assets_directory, assets_filename):
+def write_assets(assets_directory, assets_filename):
   """Writes asset files to be used with SavedModel for half plus two.
   Args:
     assets_directory: The directory to which the assets should be written.
@@ -331,7 +331,6 @@ def getTestBatch():
 def export_saved_model(version, path, sess=None):
     tf.app.flags.DEFINE_integer('version', version, 'version number of the model.')
     tf.app.flags.DEFINE_string('work_dir', path, 'your older model  directory.')
-    # tf.app.flags.DEFINE_string('model_dir', '/tmp/model_name', 'saved model directory')
     tf.app.flags.DEFINE_string('model_dir', 'tmp/model_name', 'saved model directory')
     FLAGS = tf.app.flags.FLAGS
 
@@ -349,12 +348,8 @@ def export_saved_model(version, path, sess=None):
     feature_configs = {
         'x': tf.FixedLenFeature(shape=[], dtype=tf.string),
         'y': tf.FixedLenFeature(shape=[], dtype=tf.string)
-        # 'x': tf.FixedLenFeature(shape=[], dtype=tf.int64),
-        # 'y': tf.FixedLenFeature(shape=[], dtype=tf.float32)
     }
     serialized_example = tf.placeholder(tf.string, name="tf_example")
-    # serialized_example = tf.placeholder(tf.int32, name="tf_example") # no good
-    # serialized_example = tf.placeholder(tf.int32, name="input_data")
     tf_example = tf.parse_example(serialized_example, feature_configs)
     x = tf.identity(tf_example['x'], name='x')
     y = tf.identity(tf_example['y'], name='y')
@@ -374,7 +369,7 @@ def export_saved_model(version, path, sess=None):
     # original_assets_directory = "/home/trzn/Documents/AIWork/LSTM-Sentiment-Analysis/models"
     # # original_assets_directory = path
     # original_assets_filename = "foo.txt"
-    # original_assets_filepath = _write_assets(original_assets_directory,
+    # original_assets_filepath = write_assets(original_assets_directory,
     #                                          original_assets_filename)
     #
     # # Assets: Set up the assets collection.
