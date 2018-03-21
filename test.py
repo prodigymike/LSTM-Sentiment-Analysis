@@ -370,6 +370,7 @@ def export_saved_model(version, path, sess=None):
     # original_assets_directory = path
     original_assets_filename = "foo.txt"
     # original_assets_filepath = write_assets(original_assets_directory, original_assets_filename)
+    # MJC: Trying to override and use the .npy file
     original_assets_filepath = '/home/trzn/Documents/AIWork/LSTM-Sentiment-Analysis/wordVectors.npy'
 
     # Assets: Set up the assets collection.
@@ -385,8 +386,8 @@ def export_saved_model(version, path, sess=None):
     # Define the signature def map here
     legacy_init_op = tf.group(tf.tables_initializer(), name='legacy_init_op')
     builder.add_meta_graph_and_variables(
-        # sess, [tf.saved_model.tag_constants.SERVING],
-        sess, [tf.saved_model.tag_constants.TRAINING],
+        sess, [tf.saved_model.tag_constants.SERVING],
+        # sess, [tf.saved_model.tag_constants.TRAINING],
         # signature_def_map={
         #     # 'predict_xxx': predict_signature_def_map
         #     'predict_text': predict_signature_def_map
