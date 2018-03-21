@@ -318,7 +318,7 @@ def export_saved_model(version, path, sess=None):
 
     # you can give the session and export your model immediately after training
     if not sess:
-        saver = tf.train.import_meta_graph(os.path.join(path, 'pretrained_lstm.ckpt-1000.meta'))
+        saver = tf.train.import_meta_graph(os.path.join(path, 'pretrained_lstm.ckpt-2000.meta'))
         saver.restore(sess, tf.train.latest_checkpoint(path))
 
     export_path = os.path.join(
