@@ -318,7 +318,6 @@ def export_saved_model(version, path, sess=None):
 
     # you can give the session and export your model immediately after training
     if not sess:
-        sess = tf.Session()
         saver = tf.train.import_meta_graph(os.path.join(path, 'pretrained_lstm.ckpt-2000.meta'))
         saver.restore(sess, tf.train.latest_checkpoint(path))
 
@@ -520,4 +519,5 @@ if 'saveModelSet' in locals():
     #     builder.add_meta_graph([tag_constants.SERVING])
     # # ...
     # builder.save()
-    export_saved_model(1, '/home/trzn/Documents/AIWork/LSTM-Sentiment-Analysis/models/')
+    # export_saved_model(1, '/home/trzn/Documents/AIWork/LSTM-Sentiment-Analysis/models/')
+    export_saved_model(1, '/home/trzn/Documents/AIWork/LSTM-Sentiment-Analysis/models/', sess)
