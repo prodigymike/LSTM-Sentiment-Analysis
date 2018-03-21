@@ -346,8 +346,10 @@ def export_saved_model(version, path, sess=None):
 
     # Define the signature def map here
     feature_configs = {
-        'x': tf.FixedLenFeature(shape=[], dtype=tf.string),
-        'y': tf.FixedLenFeature(shape=[], dtype=tf.string)
+        # 'x': tf.FixedLenFeature(shape=[], dtype=tf.string),
+        # 'y': tf.FixedLenFeature(shape=[], dtype=tf.string)
+        'x': tf.FixedLenFeature(shape=[numClasses], dtype=tf.string),
+        'y': tf.FixedLenFeature(shape=[numClasses], dtype=tf.string)
     }
     serialized_example = tf.placeholder(tf.string, name="tf_example")
     tf_example = tf.parse_example(serialized_example, feature_configs)
