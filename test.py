@@ -91,6 +91,7 @@ def printme(teststring):
         testArrayToNumpy = np.array(testArray)
 
     print('\n\n*- testArray: ')
+    
     print(testArrayToNumpy)
     return testArrayToNumpy
 
