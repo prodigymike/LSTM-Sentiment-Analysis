@@ -405,6 +405,11 @@ def export_saved_model(version, path, sess=None):
     print('Export SavedModel!')
 
 
+print(tf.GraphKeys.get_all_collection_keys())
+print(tf.GraphKeys.get_all_collection_keys())
+print(tf.GraphKeys.get_all_collection_keys())
+
+
 # Hyperparameters
 batchSize = 24
 lstmUnits = 64
