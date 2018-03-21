@@ -355,8 +355,8 @@ def export_saved_model(version, path, sess=None):
     feature_configs = {
         # 'x': tf.FixedLenFeature(shape=[], dtype=tf.string),
         # 'y': tf.FixedLenFeature(shape=[], dtype=tf.string)
-        'x': tf.FixedLenFeature(shape=[], dtype=tf.float32),
-        'y': tf.FixedLenFeature(shape=[], dtype=tf.int32)
+        'x': tf.FixedLenFeature(shape=[], dtype=tf.int32),
+        'y': tf.FixedLenFeature(shape=[], dtype=tf.float32)
     }
     serialized_example = tf.placeholder(tf.string, name="tf_example")
     # serialized_example = tf.placeholder(tf.string, name="input_data")
