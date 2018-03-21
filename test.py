@@ -382,15 +382,15 @@ def export_saved_model(version, path, sess=None):
     assign_filename_op = filename_tensor.assign(original_assets_filename)
 
     # TMP
-    # Load the training data into two NumPy arrays, for example using `np.load()`.
-    with np.load("wordVectors.npy") as data:
-        features = data["features"]
-        labels = data["labels"]
-
-    # Assume that each row of `features` corresponds to the same row as `labels`.
-    assert features.shape[0] == labels.shape[0]
-
-    dataset = tf.data.Dataset.from_tensor_slices((features, labels))
+    # # Load the training data into two NumPy arrays, for example using `np.load()`.
+    # with np.load("wordVectors.npy") as data:
+    #     features = data["features"]
+    #     labels = data["labels"]
+    #
+    # # Assume that each row of `features` corresponds to the same row as `labels`.
+    # assert features.shape[0] == labels.shape[0]
+    #
+    # dataset = tf.data.Dataset.from_tensor_slices((features, labels))
     # TMP
 
     # Define the signature def map here
