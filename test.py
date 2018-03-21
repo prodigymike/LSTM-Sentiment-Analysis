@@ -331,7 +331,7 @@ def getTestBatch():
 def export_saved_model(version, path, sess=None):
     tf.app.flags.DEFINE_integer('version', version, 'version number of the model.')
     tf.app.flags.DEFINE_string('work_dir', path, 'your older model  directory.')
-    tf.app.flags.DEFINE_string('model_dir', 'tmp/model_name', 'saved model directory')
+    tf.app.flags.DEFINE_string('model_dir', 'Saved_Models/', 'saved model directory')
     FLAGS = tf.app.flags.FLAGS
 
     # you can give the session and export your model immediately after training
