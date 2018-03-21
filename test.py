@@ -19,7 +19,7 @@ argumentList = fullCmdArguments[1:]  # - further arguments
 
 # Prepare valid parameters
 unixOptions = "ho:v"
-gnuOptions = ["help", "test", "train", "accuracy", "load"]
+gnuOptions = ["help", "test", "train", "accuracy", "load", "savemodel"]
 
 # Parse the argument list
 try:
@@ -45,6 +45,9 @@ for currentArgument, currentValue in arguments:
     elif currentArgument in ("-l", "--load"):
         print ("Loading pre-trained data...")
         loadpreSet = 1
+    elif currentArgument in ("-s", "--savemodel"):
+        print ("Preparing to save model...")
+        saveModelSet = 1
 
 strip_special_chars = re.compile("[^A-Za-z0-9 ]+")
 
@@ -408,3 +411,24 @@ if 'accuracySet' in locals():
     # for i in tqdm(range(iterations)):
         nextBatch, nextBatchLabels = getTestBatch()
         print("^- Accuracy for this batch:", (sess.run(accuracy, {input_data: nextBatch, labels: nextBatchLabels})) * 100)
+
+
+#
+if 'saveModelSet' in locals():
+    print('\n\nSAVING MODEL...')
+    export_dir = "models/"
+    # ...
+    builder = tf.saved_model.builder.SavedModelBuilder(export_dir)
+    with tf.Session(graph=tf.Graph()) as sess:
+        # ...
+        builder.add_meta_graph_and_variables(sess,
+                                             [tag_constants.TRAINING],
+                                             signature_def_map=foo_signatures,
+                                             assets_collection=foo_assets)
+    # ...
+    # Add a second MetaGraphDef for inference.
+    with tf.Session(graph=tf.Graph()) as sess:
+        # ...
+        builder.add_meta_graph([tag_constants.SERVING])
+    # ...
+    builder.save()
