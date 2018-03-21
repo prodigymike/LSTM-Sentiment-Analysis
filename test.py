@@ -328,6 +328,50 @@ def getTestBatch():
     return arr, labels
 
 
+# Hyperparameters
+batchSize = 24
+lstmUnits = 64
+numClasses = 2
+# iterations = 100000 (ORIGINAL)
+iterations = 50000
+
+# Import placeholder
+print('\n\nINITIALIZING..')
+print('^- Import placeholder...')
+tf.reset_default_graph()
+labels = tf.placeholder(tf.float32, [batchSize, numClasses])
+input_data = tf.placeholder(tf.int32, [batchSize, maxSeqLength])
+
+# Get wordvectors
+print('^- Fetching wordvectors...')
+data = tf.Variable(tf.zeros([batchSize, maxSeqLength, numDimensions]), dtype=tf.float32)
+data = tf.nn.embedding_lookup(wordVectors, input_data)
+
+# Feed both the LSTM cell and the 3D tensor full of input data
+print('^- Feeding LSTM cell & 3D tensor w/ input data...')
+lstmCell = tf.contrib.rnn.BasicLSTMCell(lstmUnits)
+lstmCell = tf.contrib.rnn.DropoutWrapper(cell=lstmCell, output_keep_prob=0.75)
+value, _ = tf.nn.dynamic_rnn(lstmCell, data, dtype=tf.float32)
+
+# The first output of the dynamic RNN function can be thought of as the last hidden state vector.
+# This vector will be reshaped and then multiplied by a final weight matrix and a bias term to obtain the final output values
+weight = tf.Variable(tf.truncated_normal([lstmUnits, numClasses]))
+bias = tf.Variable(tf.constant(0.1, shape=[numClasses]))
+value = tf.transpose(value, [1, 0, 2])
+last = tf.gather(value, int(value.get_shape()[0]) - 1)
+prediction = (tf.matmul(last, weight) + bias)
+
+# Define correct prediction and accuracy metrics to track how the network is doing
+print('^- Define correct prediction and accuracy metrics to track how the network is doing...')
+correctPred = tf.equal(tf.argmax(prediction,1), tf.argmax(labels, 1))
+accuracy = tf.reduce_mean(tf.cast(correctPred, tf.float32))
+
+# We'll define a standard cross entropy loss with a softmax layer put on top of the final prediction values.
+# For the optimizer, we'll use Adam and the default learning rate of .001.
+loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=prediction, labels=labels))
+optimizer = tf.train.AdamOptimizer().minimize(loss)
+
+
 def export_saved_model(version, path, sess=None):
     tf.app.flags.DEFINE_integer('version', version, 'version number of the model.')
     tf.app.flags.DEFINE_string('work_dir', path, 'your older model  directory.')
@@ -382,15 +426,15 @@ def export_saved_model(version, path, sess=None):
     assign_filename_op = filename_tensor.assign(original_assets_filename)
 
     # TMP
-    # # Load the training data into two NumPy arrays, for example using `np.load()`.
-    # with np.load("wordVectors.npy") as data:
-    #     features = data["features"]
-    #     labels = data["labels"]
-    #
-    # # Assume that each row of `features` corresponds to the same row as `labels`.
-    # assert features.shape[0] == labels.shape[0]
-    #
-    # dataset = tf.data.Dataset.from_tensor_slices((features, labels))
+    # Load the training data into two NumPy arrays, for example using `np.load()`.
+    with wordVectors as data:
+        features = data["features"]
+        labels = data["labels"]
+
+    # Assume that each row of `features` corresponds to the same row as `labels`.
+    assert features.shape[0] == labels.shape[0]
+
+    dataset = tf.data.Dataset.from_tensor_slices((features, labels))
     # TMP
 
     # Define the signature def map here
@@ -415,55 +459,12 @@ def export_saved_model(version, path, sess=None):
         # assets_collection=np.load('wordVectors.npy')  # TypeError: Asset path tensor must be a Tensor.
         # assets_collection=wordVectors.shape  # TypeError: Asset path tensor must be a Tensor.
         # assets_collection=tf.convert_to_tensor(wordVectors, np.float32)  # TypeError: 'Tensor' object is not iterable.
-        assets_collection=tf.convert_to_tensor(wordVectors.shape, np.float32)
+        # assets_collection=tf.convert_to_tensor(wordVectors.shape, np.float32),  # TypeError: 'Tensor' object is not iterable.
+        assets_collection=data
     )
 
     builder.save()
     print('Export SavedModel!')
-
-
-# Hyperparameters
-batchSize = 24
-lstmUnits = 64
-numClasses = 2
-# iterations = 100000 (ORIGINAL)
-iterations = 50000
-
-# Import placeholder
-print('\n\nINITIALIZING..')
-print('^- Import placeholder...')
-tf.reset_default_graph()
-labels = tf.placeholder(tf.float32, [batchSize, numClasses])
-input_data = tf.placeholder(tf.int32, [batchSize, maxSeqLength])
-
-# Get wordvectors
-print('^- Fetching wordvectors...')
-data = tf.Variable(tf.zeros([batchSize, maxSeqLength, numDimensions]), dtype=tf.float32)
-data = tf.nn.embedding_lookup(wordVectors, input_data)
-
-# Feed both the LSTM cell and the 3D tensor full of input data
-print('^- Feeding LSTM cell & 3D tensor w/ input data...')
-lstmCell = tf.contrib.rnn.BasicLSTMCell(lstmUnits)
-lstmCell = tf.contrib.rnn.DropoutWrapper(cell=lstmCell, output_keep_prob=0.75)
-value, _ = tf.nn.dynamic_rnn(lstmCell, data, dtype=tf.float32)
-
-# The first output of the dynamic RNN function can be thought of as the last hidden state vector.
-# This vector will be reshaped and then multiplied by a final weight matrix and a bias term to obtain the final output values
-weight = tf.Variable(tf.truncated_normal([lstmUnits, numClasses]))
-bias = tf.Variable(tf.constant(0.1, shape=[numClasses]))
-value = tf.transpose(value, [1, 0, 2])
-last = tf.gather(value, int(value.get_shape()[0]) - 1)
-prediction = (tf.matmul(last, weight) + bias)
-
-# Define correct prediction and accuracy metrics to track how the network is doing
-print('^- Define correct prediction and accuracy metrics to track how the network is doing...')
-correctPred = tf.equal(tf.argmax(prediction,1), tf.argmax(labels, 1))
-accuracy = tf.reduce_mean(tf.cast(correctPred, tf.float32))
-
-# We'll define a standard cross entropy loss with a softmax layer put on top of the final prediction values.
-# For the optimizer, we'll use Adam and the default learning rate of .001.
-loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=prediction, labels=labels))
-optimizer = tf.train.AdamOptimizer().minimize(loss)
 
 
 #####################################################################
