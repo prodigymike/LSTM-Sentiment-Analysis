@@ -397,8 +397,8 @@ def export_saved_model(version, path, sess=None):
         # },
         signature_def_map=predict_signature_def_map,
         assets_collection=tf.get_collection(tf.GraphKeys.ASSET_FILEPATHS),
-        # legacy_init_op=legacy_init_op  # ORIG
-        legacy_init_op=tf.group(assign_filename_op)
+        legacy_init_op=legacy_init_op  # ORIG
+        # legacy_init_op=tf.group(assign_filename_op)
     )
 
     builder.save()
