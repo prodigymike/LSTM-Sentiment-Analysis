@@ -9,6 +9,7 @@ from random import randint
 import getopt, sys
 # import logging
 from tqdm import tqdm
+import os
 
 ###############
 # CLI ARGUMENTS
