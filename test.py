@@ -381,6 +381,18 @@ def export_saved_model(version, path, sess=None):
         collections=[])
     assign_filename_op = filename_tensor.assign(original_assets_filename)
 
+    # TMP
+    # Load the training data into two NumPy arrays, for example using `np.load()`.
+    with np.load("wordVectors.npy") as data:
+        features = data["features"]
+        labels = data["labels"]
+
+    # Assume that each row of `features` corresponds to the same row as `labels`.
+    assert features.shape[0] == labels.shape[0]
+
+    dataset = tf.data.Dataset.from_tensor_slices((features, labels))
+    # TMP
+
     # Define the signature def map here
     legacy_init_op = tf.group(tf.tables_initializer(), name='legacy_init_op')
     builder.add_meta_graph_and_variables(
@@ -402,8 +414,8 @@ def export_saved_model(version, path, sess=None):
         # assets_collection=wordVectors  # TypeError: Asset path tensor must be a Tensor.
         # assets_collection=np.load('wordVectors.npy')  # TypeError: Asset path tensor must be a Tensor.
         # assets_collection=wordVectors.shape  # TypeError: Asset path tensor must be a Tensor.
-        assets_collection=tf.convert_to_tensor(wordVectors, np.float32)
-        # assets_collection=tf.convert_to_tensor(wordVectors.shape, np.float32)
+        # assets_collection=tf.convert_to_tensor(wordVectors, np.float32)  # TypeError: 'Tensor' object is not iterable.
+        assets_collection=tf.convert_to_tensor(wordVectors.shape, np.float32)
     )
 
     builder.save()
