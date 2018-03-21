@@ -94,6 +94,24 @@ def printme(teststring):
     return testArrayToNumpy
 
 
+def _write_assets(assets_directory, assets_filename):
+  """Writes asset files to be used with SavedModel for half plus two.
+  Args:
+    assets_directory: The directory to which the assets should be written.
+    assets_filename: Name of the file to which the asset contents should be
+        written.
+  Returns:
+    The path to which the assets file was written.
+  """
+  if not file_io.file_exists(assets_directory):
+    file_io.recursive_create_dir(assets_directory)
+
+  path = os.path.join(
+      tf.compat.as_bytes(assets_directory), tf.compat.as_bytes(assets_filename))
+  file_io.write_string_to_file(path, "asset-file-contents")
+  return path
+
+
 ###############
 # LOAD WORDLIST
 ###############
@@ -349,16 +367,37 @@ def export_saved_model(version, path, sess=None):
             tf.saved_model.signature_constants.PREDICT_OUTPUTS: predict_output
         }
     )
-    # define the signature def map here
 
+    # SavedModel.
+    # Assets: Create an assets file that can be saved and restored as part of the
+    # original_assets_directory = "/tmp/original/export/assets"
+    original_assets_directory = path
+    original_assets_filename = "foo.txt"
+    original_assets_filepath = _write_assets(original_assets_directory,
+                                             original_assets_filename)
+
+    # Assets: Set up the assets collection.
+    assets_filepath = tf.constant(original_assets_filepath)
+    tf.add_to_collection(tf.GraphKeys.ASSET_FILEPATHS, assets_filepath)
+    filename_tensor = tf.Variable(
+        original_assets_filename,
+        name="filename_tensor",
+        trainable=False,
+        collections=[])
+    assign_filename_op = filename_tensor.assign(original_assets_filename)
+
+    # define the signature def map here
     legacy_init_op = tf.group(tf.tables_initializer(), name='legacy_init_op')
     builder.add_meta_graph_and_variables(
         sess, [tf.saved_model.tag_constants.SERVING],
-        signature_def_map={
-            # 'predict_xxx': predict_signature_def_map
-            'predict_text': predict_signature_def_map
-        },
-        legacy_init_op=legacy_init_op
+        # signature_def_map={
+        #     # 'predict_xxx': predict_signature_def_map
+        #     'predict_text': predict_signature_def_map
+        # },
+        signature_def_map=predict_signature_def_map,
+        assets_collection=tf.get_collection(tf.GraphKeys.ASSET_FILEPATHS),
+        # legacy_init_op=legacy_init_op  # ORIG
+        legacy_init_op=tf.group(assign_filename_op)
     )
 
     builder.save()
