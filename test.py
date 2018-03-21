@@ -120,8 +120,8 @@ print ('^- Loaded word vectors!')
 # TEST: SET TEXT STRING
 #######################
 maxSeqLength = 10  # Maximum length of sentence
-# numDimensions = 300  # Dimensions for each word vector
-numDimensions = 50  # Dimensions for each word vector
+numDimensions = 300  # Dimensions for each word vector (ORIGINAL)
+# numDimensions = 50  # Dimensions for each word vector
 if 'testSet' in locals():
     print ('TESTING: NOW RUNNING...')
     # maxSeqLength = 10  # Maximum length of sentence
@@ -311,7 +311,8 @@ def getTestBatch():
 batchSize = 24
 lstmUnits = 64
 numClasses = 2
-iterations = 100000
+# iterations = 100000
+iterations = 50000
 
 # Import placeholder
 print('\n\nINITIALIZING..')
