@@ -328,83 +328,6 @@ def getTestBatch():
     return arr, labels
 
 
-def export_saved_model(version, path, sess=None):
-    tf.app.flags.DEFINE_integer('version', version, 'version number of the model.')
-    tf.app.flags.DEFINE_string('work_dir', path, 'your older model  directory.')
-    tf.app.flags.DEFINE_string('model_dir', 'Saved_Models/', 'saved model directory')
-    FLAGS = tf.app.flags.FLAGS
-
-    # you can give the session and export your model immediately after training
-    if not sess:
-        saver = tf.train.import_meta_graph(os.path.join(path, 'pretrained_lstm.ckpt-2000.meta'))
-        saver.restore(sess, tf.train.latest_checkpoint(path))
-
-    export_path = os.path.join(
-        tf.compat.as_bytes(FLAGS.model_dir),
-        tf.compat.as_bytes(str(FLAGS.version)))
-    builder = tf.saved_model.builder.SavedModelBuilder(export_path)
-
-    # Define the signature def map here
-    feature_configs = {
-        'x': tf.FixedLenFeature(shape=[], dtype=tf.string),
-        'y': tf.FixedLenFeature(shape=[], dtype=tf.string)
-    }
-    serialized_example = tf.placeholder(tf.string, name="tf_example")
-    tf_example = tf.parse_example(serialized_example, feature_configs)
-    x = tf.identity(tf_example['x'], name='x')
-    y = tf.identity(tf_example['y'], name='y')
-    predict_input = x
-    predict_output = y
-    predict_signature_def_map = tf.saved_model.signature_def_utils.predict_signature_def(
-        inputs={
-            tf.saved_model.signature_constants.PREDICT_INPUTS: predict_input
-        },
-        outputs={
-            tf.saved_model.signature_constants.PREDICT_OUTPUTS: predict_output
-        }
-    )
-
-    # SavedModel.
-    # Assets: Create an assets file that can be saved and restored as part of the
-    original_assets_directory = "/home/trzn/Documents/AIWork/LSTM-Sentiment-Analysis/models"
-    # original_assets_directory = path
-    original_assets_filename = "foo.txt"
-    original_assets_filepath = write_assets(original_assets_directory, original_assets_filename)
-
-    # Assets: Set up the assets collection.
-    assets_filepath = tf.constant(original_assets_filepath)
-    tf.add_to_collection(tf.GraphKeys.ASSET_FILEPATHS, assets_filepath)
-    filename_tensor = tf.Variable(
-        original_assets_filename,
-        name="filename_tensor",
-        trainable=False,
-        collections=[])
-    assign_filename_op = filename_tensor.assign(original_assets_filename)
-
-    # Define the signature def map here
-    legacy_init_op = tf.group(tf.tables_initializer(), name='legacy_init_op')
-    builder.add_meta_graph_and_variables(
-        # sess, [tf.saved_model.tag_constants.SERVING],
-        sess, [tf.saved_model.tag_constants.TRAINING],
-        # signature_def_map={
-        #     # 'predict_xxx': predict_signature_def_map
-        #     'predict_text': predict_signature_def_map
-        # },
-        # legacy_init_op=legacy_init_op
-        # Save assets!
-        signature_def_map={
-            'predict_text': predict_signature_def_map
-        },
-        # legacy_init_op=tf.group(assign_filename_op),
-        legacy_init_op=tf.group(assign_filename_op, tf.tables_initializer(), name='legacy_init_op'),  # merged
-        # legacy_init_op=legacy_init_op,
-        assets_collection=tf.get_collection(tf.GraphKeys.ASSET_FILEPATHS)
-    )
-
-    builder.save()
-    print('Export SavedModel!')
-
-
 # Hyperparameters
 batchSize = 24
 lstmUnits = 64
@@ -515,7 +438,83 @@ if 'accuracySet' in locals():
         print("^- Accuracy for this batch:", (sess.run(accuracy, {input_data: nextBatch, labels: nextBatchLabels})) * 100)
 
 
-#
+def export_saved_model(version, path, sess=None):
+    tf.app.flags.DEFINE_integer('version', version, 'version number of the model.')
+    tf.app.flags.DEFINE_string('work_dir', path, 'your older model  directory.')
+    tf.app.flags.DEFINE_string('model_dir', 'Saved_Models/', 'saved model directory')
+    FLAGS = tf.app.flags.FLAGS
+
+    # you can give the session and export your model immediately after training
+    if not sess:
+        saver = tf.train.import_meta_graph(os.path.join(path, 'pretrained_lstm.ckpt-2000.meta'))
+        saver.restore(sess, tf.train.latest_checkpoint(path))
+
+    export_path = os.path.join(
+        tf.compat.as_bytes(FLAGS.model_dir),
+        tf.compat.as_bytes(str(FLAGS.version)))
+    builder = tf.saved_model.builder.SavedModelBuilder(export_path)
+
+    # Define the signature def map here
+    feature_configs = {
+        'x': tf.FixedLenFeature(shape=[], dtype=tf.string),
+        'y': tf.FixedLenFeature(shape=[], dtype=tf.string)
+    }
+    serialized_example = tf.placeholder(tf.string, name="tf_example")
+    tf_example = tf.parse_example(serialized_example, feature_configs)
+    x = tf.identity(tf_example['x'], name='x')
+    y = tf.identity(tf_example['y'], name='y')
+    predict_input = x
+    predict_output = y
+    predict_signature_def_map = tf.saved_model.signature_def_utils.predict_signature_def(
+        inputs={
+            tf.saved_model.signature_constants.PREDICT_INPUTS: predict_input
+        },
+        outputs={
+            tf.saved_model.signature_constants.PREDICT_OUTPUTS: predict_output
+        }
+    )
+
+    # SavedModel.
+    # Assets: Create an assets file that can be saved and restored as part of the
+    original_assets_directory = "/home/trzn/Documents/AIWork/LSTM-Sentiment-Analysis/models"
+    # original_assets_directory = path
+    original_assets_filename = "foo.txt"
+    original_assets_filepath = write_assets(original_assets_directory, original_assets_filename)
+
+    # Assets: Set up the assets collection.
+    assets_filepath = tf.constant(original_assets_filepath)
+    tf.add_to_collection(tf.GraphKeys.ASSET_FILEPATHS, assets_filepath)
+    filename_tensor = tf.Variable(
+        original_assets_filename,
+        name="filename_tensor",
+        trainable=False,
+        collections=[])
+    assign_filename_op = filename_tensor.assign(original_assets_filename)
+
+    # Define the signature def map here
+    legacy_init_op = tf.group(tf.tables_initializer(), name='legacy_init_op')
+    builder.add_meta_graph_and_variables(
+        # sess, [tf.saved_model.tag_constants.SERVING],
+        sess, [tf.saved_model.tag_constants.TRAINING],
+        # signature_def_map={
+        #     # 'predict_xxx': predict_signature_def_map
+        #     'predict_text': predict_signature_def_map
+        # },
+        # legacy_init_op=legacy_init_op
+        # Save assets!
+        signature_def_map={
+            'predict_text': predict_signature_def_map
+        },
+        # legacy_init_op=tf.group(assign_filename_op),
+        legacy_init_op=tf.group(assign_filename_op, tf.tables_initializer(), name='legacy_init_op'),  # merged
+        # legacy_init_op=legacy_init_op,
+        assets_collection=tf.get_collection(tf.GraphKeys.ASSET_FILEPATHS)
+    )
+
+    builder.save()
+    print('Export SavedModel!')
+
+
 if 'saveModelSet' in locals():
     print('\n\nSAVING MODEL...')
     # export_dir = "Saved_Models/"
