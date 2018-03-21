@@ -120,7 +120,8 @@ print ('^- Loaded word vectors!')
 # TEST: SET TEXT STRING
 #######################
 maxSeqLength = 10  # Maximum length of sentence
-numDimensions = 300  # Dimensions for each word vector
+# numDimensions = 300  # Dimensions for each word vector
+numDimensions = 50  # Dimensions for each word vector
 if 'testSet' in locals():
     print ('TESTING: NOW RUNNING...')
     # maxSeqLength = 10  # Maximum length of sentence
