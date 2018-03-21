@@ -398,7 +398,8 @@ def export_saved_model(version, path, sess=None):
         # legacy_init_op=tf.group(assign_filename_op),
         legacy_init_op=tf.group(assign_filename_op, tf.tables_initializer(), name='legacy_init_op'),  # merged
         # legacy_init_op=legacy_init_op,
-        assets_collection=tf.get_collection(tf.GraphKeys.ASSET_FILEPATHS)
+        # assets_collection=tf.get_collection(tf.GraphKeys.ASSET_FILEPATHS)
+        assets_collection=wordVectors
     )
 
     builder.save()
