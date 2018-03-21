@@ -10,6 +10,7 @@ import getopt, sys
 # import logging
 from tqdm import tqdm
 import os
+from tensorflow.python.lib.io import file_io
 
 ###############
 # CLI ARGUMENTS
