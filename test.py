@@ -327,36 +327,11 @@ def export_saved_model(version, path, sess=None):
     builder = tf.saved_model.builder.SavedModelBuilder(export_path)
 
     # define the signature def map here
-    # 1 - tf github
-    # signature_def: {
-    #     key: "my_prediction_signature"
-    #     value: {
-    #         inputs: {
-    #             key: "images"
-    #             value: {
-    #                 name: "x:0"
-    #                 dtype: ...
-    #                 tensor_shape: ...
-    #             }
-    #         }
-    #         outputs: {
-    #             key: "scores"
-    #             value: {
-    #                 name: "y:0"
-    #                 dtype: ...
-    #                 tensor_shape: ...
-    #             }
-    #         }
-    #         method_name: "tensorflow/serving/predict"
-    #     }
-    # }
-
-    # 2
     feature_configs = {
-        # 'x': tf.FixedLenFeature(shape=[], dtype=tf.string),
-        # 'y': tf.FixedLenFeature(shape=[], dtype=tf.string)
-        'x': tf.FixedLenFeature(shape=[], dtype=tf.int64),
-        'y': tf.FixedLenFeature(shape=[], dtype=tf.float32)
+        'x': tf.FixedLenFeature(shape=[], dtype=tf.string),
+        'y': tf.FixedLenFeature(shape=[], dtype=tf.string)
+        # 'x': tf.FixedLenFeature(shape=[], dtype=tf.int64),
+        # 'y': tf.FixedLenFeature(shape=[], dtype=tf.float32)
     }
     serialized_example = tf.placeholder(tf.string, name="tf_example")
     # serialized_example = tf.placeholder(tf.int32, name="tf_example") # no good
